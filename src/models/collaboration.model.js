@@ -1,103 +1,53 @@
-import mongoose from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
+// Collaboration model for database integration
+// This is a placeholder for future database implementation
 
-const collaboratorSchema = new mongoose.Schema({
-    userId: {
-        type: String, // Changed from ObjectId to String
-        ref: 'User',
-        required: false // Can be null for email invites not yet registered
-    },
-    email: {
-        type: String,
-        required: true
-    },
-    name: {
-        type: String,
-        default: ''
-    },
+const collaborationSchema = {
+  chatId: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  collaborators: [{
+    _id: String,
+    email: String,
+    name: String,
     role: {
-        type: String,
-        enum: ['owner', 'editor', 'viewer'],
-        default: 'viewer'
+      type: String,
+      enum: ['viewer', 'editor', 'owner'],
+      default: 'viewer'
     },
     status: {
-        type: String,
-        enum: ['pending', 'accepted', 'rejected'],
-        default: 'pending'
+      type: String,
+      enum: ['pending', 'accepted', 'declined'],
+      default: 'pending'
     },
-    invitedAt: {
-        type: Date,
-        default: Date.now
+    invitedAt: Date,
+    joinedAt: Date
+  }],
+  settings: {
+    notifications: {
+      type: Boolean,
+      default: true
     },
-    acceptedAt: {
-        type: Date
+    soundEnabled: {
+      type: Boolean,
+      default: true
     }
-});
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+};
 
-const collaborationSchema = new mongoose.Schema({
-    chatId: {
-        type: String, // Changed from ObjectId to String to support local session IDs
-        required: true
-    },
-    projectName: {
-        type: String,
-        default: 'Untitled Project'
-    },
-    owner: {
-        type: String, // Changed from ObjectId to String to support temp user IDs
-        required: true
-    },
-    collaborators: [collaboratorSchema],
-    shareLink: {
-        type: String,
-        sparse: true,
-        default: () => uuidv4()
-    },
-    shareLinkEnabled: {
-        type: Boolean,
-        default: false
-    },
-    shareLinkExpiry: {
-        type: Date
-    },
-    settings: {
-        allowComments: {
-            type: Boolean,
-            default: true
-        },
-        allowEditing: {
-            type: Boolean,
-            default: true
-        },
-        requireApproval: {
-            type: Boolean,
-            default: false
-        }
-    },
-    activeUsers: [{
-        userId: {
-            type: String, // Changed from ObjectId to String
-            ref: 'User'
-        },
-        email: String,
-        name: String,
-        lastActive: {
-            type: Date,
-            default: Date.now
-        },
-        cursor: {
-            position: Number,
-            color: String
-        }
-    }]
-}, {
-    timestamps: true
-});
+// For now, we'll use in-memory storage
+// In production, this would be a proper database model (MongoDB, PostgreSQL, etc.)
 
-// Index for faster queries
-collaborationSchema.index({ chatId: 1 });
-collaborationSchema.index({ owner: 1 });
-collaborationSchema.index({ 'collaborators.email': 1 });
-collaborationSchema.index({ shareLink: 1 });
-
-export default mongoose.model('Collaboration', collaborationSchema);
+export default {
+  schema: collaborationSchema,
+  // Add database methods here when implementing with a real database
+};

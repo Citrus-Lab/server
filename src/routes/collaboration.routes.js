@@ -1,34 +1,30 @@
 import express from 'express';
-import * as collaborationController from '../controllers/collaboration.controller.js';
+import collaborationController from '../controllers/collaboration.controller.js';
 
 const router = express.Router();
 
-// IMPORTANT: Specific routes MUST come before parameterized routes
-// Access shared chat (MUST be before /:chatId routes)
-router.get('/shared/:shareToken', collaborationController.accessSharedChat);
-router.get('/invitation/:shareToken', collaborationController.accessSharedChat);
+// Get collaboration data for a chat
+router.get('/:chatId', collaborationController.getCollaboration);
 
-// Get or create collaboration for a chat
-router.get('/:chatId', collaborationController.getOrCreateCollaboration);
-router.post('/:chatId', collaborationController.getOrCreateCollaboration);
-
-// Invite collaborator
-router.post('/:chatId/invite', collaborationController.inviteCollaborator);
-
-// Update collaborator role
-router.patch('/:chatId/collaborators/:collaboratorId', collaborationController.updateCollaboratorRole);
-
-// Remove collaborator
-router.delete('/:chatId/collaborators/:collaboratorId', collaborationController.removeCollaborator);
-
-// Generate share link
-router.post('/:chatId/share-link', collaborationController.generateShareLink);
-
-// Disable share link
-router.delete('/:chatId/share-link', collaborationController.disableShareLink);
-
-// Active users (real-time presence)
-router.post('/:chatId/active-users', collaborationController.updateActiveUser);
+// Get active users for a chat
 router.get('/:chatId/active-users', collaborationController.getActiveUsers);
+
+// Update user presence
+router.post('/:chatId/active-users', collaborationController.updatePresence);
+
+// Invite user to collaboration
+router.post('/:chatId/invite', collaborationController.inviteUser);
+
+// Update user role
+router.put('/:chatId/users/:userId/role', collaborationController.updateUserRole);
+
+// Remove user from collaboration
+router.delete('/:chatId/users/:userId', collaborationController.removeUser);
+
+// Send message in collaboration chat
+router.post('/:chatId/messages', collaborationController.sendMessage);
+
+// Get messages for collaboration chat
+router.get('/:chatId/messages', collaborationController.getMessages);
 
 export default router;
