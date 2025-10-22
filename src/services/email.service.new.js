@@ -114,7 +114,7 @@ class EmailService {
         process.env.EMAIL_USER : 
         (process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_USER || 'noreply@citruslab.dev');
       
-      const logoPath = path.resolve(process.cwd(), '..', 'react', 'src', 'assets', 'citrus-logo.png');
+      const logoPath = path.resolve(process.cwd(), '..', 'client', 'src', 'assets', 'citrus-logo.png');
       
       console.log('🚀 SENDING NEW TEMPLATE EMAIL:');
       console.log('   Provider:', this.currentProvider);
