@@ -20,9 +20,13 @@ app.use(cors({
     origin: [
         process.env.FRONTEND_URL || "http://localhost:3000",
         "http://192.168.1.61:3000",
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "https://citrus-lab-frontend.onrender.com",
+        "https://citrus-lab-frontend.onrender.com/"
     ],
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(cookieParser());
