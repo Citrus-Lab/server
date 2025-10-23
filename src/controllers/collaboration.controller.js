@@ -163,7 +163,8 @@ const collaborationController = {
 
       // Generate invitation link
       const invitationToken = `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const invitationLink = `${req.protocol}://${req.get('host')}/invitation/${invitationToken}`;
+      const frontendUrl = process.env.FRONTEND_URL || 'https://citrus-lab-frontend.onrender.com';
+      const invitationLink = `${frontendUrl}/invitation/${invitationToken}`;
 
       // Try to send email invitation
       let emailStatus = { sent: false, error: 'Email service not configured' };

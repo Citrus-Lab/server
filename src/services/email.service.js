@@ -16,16 +16,31 @@ class EmailService {
 
   initializeSync() {
     try {
-      const emailProvider = process.env.EMAIL_PROVIDER || 'auto';
+      const emailProvider = process.env.EMAIL_PROVIDER || (process.env.NODE_ENV === 'production' ? 'sendgrid' : 'auto');
       
       console.log('🔧 Email Provider Setting:', emailProvider);
       console.log('📧 Available Configurations:');
+      console.log('   NODE_ENV:', process.env.NODE_ENV || 'development');
       console.log('   SendGrid:', process.env.SENDGRID_API_KEY ? 'Available ✓' : 'Not configured');
       console.log('   Gmail:', (process.env.EMAIL_SERVICE === 'gmail' && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) ? 'Available ✓' : 'Not configured');
       
-      // Gmail configuration (priority when EMAIL_PROVIDER=gmail or EMAIL_SERVICE=gmail)
-      if ((emailProvider === 'gmail' || process.env.EMAIL_SERVICE === 'gmail') && 
-          process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+      // In production, prioritize SendGrid
+      if (process.env.NODE_ENV === 'production' && process.env.SENDGRID_API_KEY) {
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.sendgrid.net',
+          port: 587,
+          secure: false,
+          auth: {
+            user: 'apikey',
+            pass: process.env.SENDGRID_API_KEY
+          }
+        });
+        console.log('✅ Production: Email service initialized with SendGrid');
+        this.currentProvider = 'sendgrid';
+        this.initialized = true;
+      }
+      // Manual override for Gmail
+      else if (emailProvider === 'gmail' && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         this.transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
@@ -33,11 +48,11 @@ class EmailService {
             pass: process.env.EMAIL_PASSWORD
           }
         });
-        console.log('✅ Email service initialized with Gmail');
+        console.log('✅ Email service initialized with Gmail (manual override)');
         this.currentProvider = 'gmail';
         this.initialized = true;
       }
-      // SendGrid configuration
+      // Auto-detect: Try SendGrid first if available
       else if ((emailProvider === 'sendgrid' || emailProvider === 'auto') && process.env.SENDGRID_API_KEY) {
         this.transporter = nodemailer.createTransport({
           host: 'smtp.sendgrid.net',
@@ -48,11 +63,11 @@ class EmailService {
             pass: process.env.SENDGRID_API_KEY
           }
         });
-        console.log('✅ Email service initialized with SendGrid');
+        console.log('✅ Email service initialized with SendGrid (auto)');
         this.currentProvider = 'sendgrid';
         this.initialized = true;
       }
-      // Fallback: Gmail if available
+      // Fallback to Gmail if available
       else if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         this.transporter = nodemailer.createTransport({
           service: 'gmail',
@@ -65,13 +80,14 @@ class EmailService {
         this.currentProvider = 'gmail';
         this.initialized = true;
       }
-      // Development mode
+      // Development mode - log to console
       else {
-        console.warn('⚠️  Email service not configured. Emails will be logged to console.');
+        console.warn('⚠️  Email service not properly configured. Emails will be logged to console only.');
         this.transporter = nodemailer.createTransport({
           streamTransport: true,
           newline: 'unix',
-          buffer: true
+          buffer: true,
+          debug: true
         });
         this.currentProvider = 'console';
         this.initialized = true;
