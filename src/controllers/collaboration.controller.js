@@ -166,30 +166,28 @@ const collaborationController = {
       const frontendUrl = process.env.FRONTEND_URL || 'https://citrus-lab-frontend.onrender.com';
       const invitationLink = `${frontendUrl}/invitation/${invitationToken}`;
 
-      // Try to send email invitation
-      let emailStatus = { sent: false, error: 'Email service not configured' };
+      // Queue email sending to prevent timeouts
+      const emailStatus = { 
+        sent: false, 
+        queued: true, 
+        message: 'Email queued for sending',
+        timestamp: new Date().toISOString()
+      };
       
-      try {
-        console.log('📧 Attempting to send invitation email...');
-        const emailResult = await emailService.sendInvitationEmail({
-          to: email,
-          inviterName: 'Team Member', // TODO: Get from authenticated user
-          chatTitle: `Chat ${chatId}`, // TODO: Get actual chat title
-          invitationLink,
-          role
-        });
-        
-        if (emailResult.success) {
-          emailStatus = { sent: true, messageId: emailResult.messageId };
-          console.log('✅ Invitation email sent successfully');
-        } else {
-          emailStatus = { sent: false, error: emailResult.error };
-          console.log('❌ Failed to send invitation email:', emailResult.error);
-        }
-      } catch (error) {
-        console.error('❌ Email sending error:', error);
-        emailStatus = { sent: false, error: error.message };
-      }
+      // Send email in background
+      emailService.sendInvitationEmail({
+        to: email,
+        inviterName: 'Team Member',
+        chatTitle: `Chat ${chatId}`,
+        invitationLink,
+        role
+      })
+      .then(result => {
+        console.log('✅ Email sent successfully:', result);
+      })
+      .catch(error => {
+        console.error('❌ Failed to send invitation email:', error);
+      });
 
       res.json({
         success: true,
